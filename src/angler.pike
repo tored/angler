@@ -22,8 +22,14 @@ void scan(array(string) paths) {
 void run(string root, array(string) files) {
     foreach (files, string file) {
         Suite suite = Suite(combine_path(root, file));
-        program p = (program) (suite->path);
-        object o = p();
+        object o;
+        mixed err = catch {
+            o = ((program) suite->path)();
+        };
+        if (err) {
+            write("Could not compile test suite: %s\n", suite->path);
+            continue;
+        }
         foreach(indices(o), string s) {
             mixed f = o[s];
             if (functionp(f) && search(s, "test") == 0) {
@@ -53,7 +59,14 @@ int main(int argc, array(string) argv) {
     object report;
     string report_path = combine_path("report", report_type) + ".pike";
     if (file_stat(report_path)) {
-        report = ((program) report_path)();
+        mixed err = catch {
+            report = ((program) report_path)();
+        };
+        if (err) {
+            write("Could not compile reporter: %s\n", report_path);
+            exit(1);
+        }
+
         if (!report["run"]) {
             write("Missing run method in reporter: %s\n", report_path);
             exit(1);
