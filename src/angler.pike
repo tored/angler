@@ -2,10 +2,26 @@ import .suite;
 
 array(Suite) suites = ({});
 
-void run(string path) {
-    array(string) files = Filesystem.System()->get_dir(path, "*.pike");
+void scan(array(string) paths) {
+    foreach (paths, string path) {
+        Stdio.Stat stat = file_stat(path);
+        if (stat) {
+            if (stat.isdir) {
+                run(path, Filesystem.System()->get_dir(path, "*.pike"));
+            } else if (stat.isreg && sizeof(basename(path)/".pike") > 1) {
+                run("", ({path}));
+            } else {
+                write("Not a pike file: %s\n", path);
+            }
+        } else {
+            write("Not a directory or file: %s\n", path);    
+        }
+    }
+}
+
+void run(string root, array(string) files) {
     foreach (files, string file) {
-        Suite suite = Suite(path + "/" + file);
+        Suite suite = Suite(combine_path(root, file));
         program p = (program) (suite->path);
         object o = p();
         foreach(indices(o), string s) {
@@ -51,7 +67,6 @@ int main(int argc, array(string) argv) {
         write("No paths to unit tests\n");
         exit(1);
     }
-    // TODO support multiple paths, files and folders
-    run(paths[0]);
+    scan(paths);
     report->run(suites);
 }
