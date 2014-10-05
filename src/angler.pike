@@ -33,12 +33,12 @@ void run(string root, array(string) files) {
         foreach(indices(o), string s) {
             mixed f = o[s];
             if (functionp(f) && search(s, "test") == 0) {
-                Test test = Test();
-                mixed err = catch {
+                Test test = Test(s);
+                mixed fail = catch {
                     f();
                 };
-                if (err) {
-                    test->error = 1;
+                if (fail) {
+                    test->fail = fail;
                 }
                 suite->tests += ({test});
             }
