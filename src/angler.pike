@@ -1,51 +1,5 @@
 import .suite;
-
-array(Suite) suites = ({});
-
-void scan(array(string) paths) {
-    foreach (paths, string path) {
-        Stdio.Stat stat = file_stat(path);
-        if (stat) {
-            if (stat.isdir) {
-                run(path, Filesystem.System()->get_dir(path, "*.pike"));
-            } else if (stat.isreg && sizeof(basename(path)/".pike") > 1) {
-                run("", ({path}));
-            } else {
-                write("Not a pike file: %s\n", path);
-            }
-        } else {
-            write("Not a directory or file: %s\n", path);    
-        }
-    }
-}
-
-void run(string root, array(string) files) {
-    foreach (files, string file) {
-        Suite suite = Suite(combine_path(root, file));
-        object o;
-        mixed err = catch {
-            o = ((program) suite->path)();
-        };
-        if (err) {
-            write("Could not compile test suite: %s\n", suite->path);
-            continue;
-        }
-        foreach(indices(o), string s) {
-            mixed f = o[s];
-            if (functionp(f) && search(s, "test") == 0) {
-                Test test = Test(s);
-                mixed fail = catch {
-                    f();
-                };
-                if (fail) {
-                    test->fail = fail;
-                }
-                suite->tests += ({test});
-            }
-        }
-        suites += ({suite});
-    }
-}
+import .engine;
 
 int main(int argc, array(string) argv) {
     add_module_path(".");
@@ -80,6 +34,6 @@ int main(int argc, array(string) argv) {
         write("No paths to unit tests\n");
         exit(1);
     }
-    scan(paths);
+    array(Suite) suites = scanPaths(paths);
     report->run(suites);
 }

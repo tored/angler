@@ -1,5 +1,6 @@
 class Suite {
     string path;
+    int error = 0;
     array(Test) tests = ({});
 
     void create(string p) {
@@ -8,7 +9,6 @@ class Suite {
 }
 
 class Test {
-    int error;
     string name;
     Fail fail;
 
