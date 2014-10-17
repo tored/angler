@@ -3,6 +3,10 @@ angler
 
 Unit testing framework for Pike
 
+```
+pike angler.pike [FILE]...
+```
+
 TODO
 ----
 
